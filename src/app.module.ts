@@ -4,6 +4,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { PostresModule } from './postres/postres.module';
+import { InsumosModule } from './insumos/insumos.module';
+import { VentasModule } from './dashboard/ventas/ventas.module';
+import { VentasModule } from './ventas/ventas.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -18,6 +23,14 @@ import { AuthModule } from './auth/auth.module';
     }),
 
     AuthModule,
+
+    PostresModule,
+
+    InsumosModule,
+
+    VentasModule,
+
+    DashboardModule,
 
 
   ],
