@@ -2,7 +2,7 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-# Base de Proyecto NestJs con Postgres
+# Proyecto ERP Postre con NestJs / Postgres
 
 1. Clonar proyecto
 2. ``` yarn install```
