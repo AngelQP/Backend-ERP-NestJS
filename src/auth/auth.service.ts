@@ -24,6 +24,7 @@ export class AuthService {
 
   // Creacion de un usuario 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+
     try {
 
       const { password, ...userData } = createUserDto;
@@ -80,7 +81,26 @@ export class AuthService {
   private handleDBErrors( error: any ): never {
 
     if( error.code === '23505' ) 
-      throw new BadRequestException(error.detail);
+    {
+      if( error.detail.includes('email') ) {
+        throw new BadRequestException({
+          title: 'EMAIL_ALREADY_EXISTS',
+          message: 'El email ya está registrado.'
+        });
+      }
+
+      if( error.detail.includes('phone') ) {
+        throw new BadRequestException({
+          title: 'PHONE_ALREADY_EXISTS',
+          message: 'El número de teléfono ya está registrado.'
+        });
+      }
+
+      throw new BadRequestException({
+        title: 'UNIQUE_CONSTRAINT_VIOLATION',
+        message: 'El registro ya existe.'
+      });
+    }
 
     console.log(error);
 
