@@ -1,4 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateInsumoDto } from './create-insumo.dto';
+import { IsEnum, IsOptional, IsString } from "class-validator";
+import { UnidadesInsumo } from "../enums/unidades-insumos.enum";
 
-export class UpdateInsumoDto extends PartialType(CreateInsumoDto) {}
+export class UpdateInsumoDto {
+
+    @IsOptional()
+    @IsString()
+    nombre?: string;
+
+    @IsOptional()
+    @IsEnum(UnidadesInsumo)
+    unidad?: UnidadesInsumo;
+
+    @IsOptional()
+    activo?: boolean;
+}
