@@ -7,11 +7,8 @@ import {
     PrimaryGeneratedColumn,
     BeforeInsert,
     BeforeUpdate,
-    OneToMany, 
 } from "typeorm";
 import { ValidRoles } from "../interfaces";
-import { Insumo } from "src/insumos/entities/insumo.entity";
-import { MovimientoInsumo } from "src/insumos/entities/movimientoInsumo.entity";
 
 @Entity('users')
 export class User {

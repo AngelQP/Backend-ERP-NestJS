@@ -8,6 +8,8 @@ import { PostresModule } from './postres/postres.module';
 import { InsumosModule } from './insumos/insumos.module';
 import { VentasModule } from './ventas/ventas.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { MovimientoInsumoModule } from './movimiento-insumo/movimiento-insumo.module';
+import { InventarioInsumoModule } from './inventario-insumo/inventario-insumo.module';
 
 @Module({
   imports: [
@@ -30,6 +32,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
     VentasModule,
 
     DashboardModule,
+
+    MovimientoInsumoModule,
+
+    InventarioInsumoModule,
 
 
   ],

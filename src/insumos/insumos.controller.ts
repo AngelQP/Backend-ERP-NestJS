@@ -2,9 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from
 import { InsumosService } from './insumos.service';
 import { CreateInsumoDto } from './dto/create-insumo.dto';
 import { UpdateInsumoDto } from './dto/update-insumo.dto';
-import { CreateMovimientoInsumoDto } from './dto/create-movimiento-insumo.dto';
 import { UnidadesInsumo } from './enums/unidades-insumos.enum';
-import { MovimientoInsumoService } from './movimientoInsumo.service';
 import { TipoMovimiento } from './enums/tipo-movimiento-insumo.enum';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
@@ -16,7 +14,6 @@ export class InsumosController {
 
   constructor(
     private readonly insumosService: InsumosService,
-    private readonly movimientoInsumoService: MovimientoInsumoService,
   ) {}
 
   @Auth(ValidRoles.admin)
@@ -83,16 +80,10 @@ export class InsumosController {
   ];
   }
 
-  @Get('listar-con-stock') 
-  @Auth(ValidRoles.admin)
-  listarInsumos() {
-    return this.insumosService.listarConStock();
-  }
-
   @Get() // -> listo
   @Auth(ValidRoles.admin)
-  findAll() {
-    return this.insumosService.findAll();
+  findAll(@GetUser() user: User) {
+    return this.insumosService.findAll(user.id);
   }
 
   @Auth(ValidRoles.admin)
@@ -114,16 +105,6 @@ export class InsumosController {
   @Delete(':id') //-> listo
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.insumosService.remove(id);
-  }
-
-  /** Movimiento de insumos */
-  @Auth(ValidRoles.admin)
-  @Post('movimientos')  // -> listo
-  registrarMovimiento(
-    @Body() dto: CreateMovimientoInsumoDto,
-    @GetUser() user: User,
-  ) {
-    return this.movimientoInsumoService.registrar(dto, user.id);
   }
   
 }

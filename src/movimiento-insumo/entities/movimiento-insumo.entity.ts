@@ -1,7 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Insumo } from './insumo.entity';
-import { TipoMovimiento } from "../enums/tipo-movimiento-insumo.enum";
 import { User } from "src/auth/entities/user.entity";
+import { Insumo } from "src/insumos/entities/insumo.entity";
+import { TipoMovimiento } from "src/insumos/enums/tipo-movimiento-insumo.enum";
+import { InventarioInsumo } from "src/inventario-insumo/entities/inventario-insumo.entity";
 
 
 @Entity('movimientos_insumos')
@@ -9,10 +10,6 @@ export class MovimientoInsumo {
 
     @PrimaryGeneratedColumn('uuid')
     id: string;
-
-    @ManyToOne(() => Insumo, { nullable: false })
-    @JoinColumn({ name: 'insumo_id'})    
-    insumo: Insumo;
 
     /** Entrada -> Positivo
      * Salida -> Negativo   
@@ -33,9 +30,9 @@ export class MovimientoInsumo {
     @Column('decimal', {
         precision: 10,
         scale: 2,
-        nullable: false
+        // nullable: false
     })
-    costoUnitario: number;
+    costoUnitario?: number;
 
     @Column('timestamp with time zone', {
         default: () => 'CURRENT_TIMESTAMP'
@@ -51,4 +48,12 @@ export class MovimientoInsumo {
     @ManyToOne(() => User, { nullable: false })
     @JoinColumn({ name: 'user_id' })
     user: User;
+
+    @ManyToOne(() => Insumo, { nullable: false })
+    @JoinColumn({ name: 'insumo_id'})    
+    insumo: Insumo;
+
+    @ManyToOne(() => InventarioInsumo, { nullable: false })
+    @JoinColumn({ name: 'inventario_id' })
+    inventario: InventarioInsumo;
 }

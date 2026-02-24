@@ -1,6 +1,5 @@
 
-
-export class InsumoDetalleDto {
+export class InsumoDetalleStockDto {
 
     id: string;
     nombre: string;

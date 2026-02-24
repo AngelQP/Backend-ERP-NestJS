@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { METHODS } from 'http';
 
 async function bootstrap() {
@@ -14,11 +14,37 @@ async function bootstrap() {
   }); 
 
   // Validaciones para lo que venga dentro de la request
+  // Validaciones para lo que venga dentro de la request
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-    })
+      exceptionFactory: (errors) => {
+
+        const mensajes: string[] = [];
+
+        const extraerErrores = (errores: any[]) => {
+          for (const error of errores) {
+
+            if (error.constraints) {
+              mensajes.push(...Object.values(error.constraints) as string[]);
+            }
+
+            if (error.children && error.children.length > 0) {
+              extraerErrores(error.children);
+            }
+          }
+        };
+
+        extraerErrores(errors);
+
+        return new BadRequestException({
+          statusCode: 400,
+          message: mensajes,
+          error: 'Bad Request',
+        });
+      },
+    }),
   );
 
   // Coloca el prefijo de "api" antes de las rutas

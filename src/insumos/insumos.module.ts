@@ -3,22 +3,19 @@ import { InsumosService } from './insumos.service';
 import { InsumosController } from './insumos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Insumo } from './entities/insumo.entity';
-import { MovimientoInsumo } from './entities/movimientoInsumo.entity';
-import { MovimientoInsumoService } from './movimientoInsumo.service';
-import { Auth } from 'src/auth/decorators';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [InsumosController],
-  providers: [InsumosService, MovimientoInsumoService],
+  providers: [InsumosService],
   imports: [
     // Agregar las entidades correspondientes aquí
-    TypeOrmModule.forFeature([Insumo, MovimientoInsumo]),
+    TypeOrmModule.forFeature([Insumo]),
     AuthModule
   ],
 
   exports: [
-    TypeOrmModule
+    InsumosService
   ]
 })
 export class InsumosModule {}
