@@ -6,21 +6,25 @@ import {
   ValidateNested,
   IsUUID,
   Min,
+  IsPositive,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class RecetaDetalleDto {
-  @IsUUID()
-  insumoId: string;
+  @IsUUID(4,{
+    message: 'El insumo_id debe ser un UUID válido',
+  })
+  insumo_id: string;
 
-  @IsNumber()
-  @Min(0)
+  @IsPositive({
+    message: 'La cantidad debe ser un número positivo',
+  })
   cantidad: number;
 }
 
 export class UpdatePostreDto {
-  @IsUUID()
-  id: string;
+  // @IsUUID()
+  // id: string;
 
   @IsString()
   nombrePostre: string;
@@ -29,8 +33,8 @@ export class UpdatePostreDto {
   @IsString()
   descripcion?: string;
 
-  @IsNumber()
-  precioReferencia: number;
+  @IsPositive()
+  precioVentaReferencia: number;
 
   @IsNumber()
   @Min(1)

@@ -4,6 +4,7 @@ import { CreatePostreDto } from './dto/create-postre.dto';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
 import { User } from 'src/auth/entities/user.entity';
+import { UpdatePostreDto } from './dto/update-postre.dto';
 
 @Auth()
 @Controller('postres')
@@ -31,7 +32,7 @@ export class PostresController {
   @Put(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: CreatePostreDto,
+    @Body() dto: UpdatePostreDto,
     @GetUser() user: User,
   ) {
     return this.postresService.update(id, dto, user.id);

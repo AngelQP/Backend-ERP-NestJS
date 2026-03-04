@@ -5,6 +5,7 @@ import { Postre } from './entities/postre.entity';
 import { DataSource, In, Repository } from 'typeorm';
 import { Insumo } from 'src/insumos/entities/insumo.entity';
 import { RecetaDetalle } from './entities/recetaDetalle.entity';
+import { UpdatePostreDto } from './dto/update-postre.dto';
 
 @Injectable()
 export class PostresService {
@@ -127,50 +128,117 @@ export class PostresService {
   }
 
   // Actualizar postre y su receta
-  async update(id: string, dto: CreatePostreDto, userId: string) {
-    const postre = await this.postreRepo.findOne({
-      where: {
-        id,
-        user: { id: userId },
-      },
-      relations: ['receta'],
-    });
+  async update(id: string, dto: UpdatePostreDto, userId: string) {
 
-    if (!postre) {
-      throw new NotFoundException('Postre no encontrado');
-    }
+    try {
 
-    postre.nombrePostre = dto.nombrePostre;
-    postre.descripcion = dto.descripcion ? dto.descripcion : null;
-    postre.precioVentaReferencia = dto.precioVentaReferencia;
-    postre.rendimientoBase = dto.rendimientoBase;
+      return await this.dataSource.transaction(async (manager) => {
 
-    postre.receta = [];
-
-    postre.receta = await Promise.all(
-      dto.receta.map(async (item) => {
-        const insumo = await this.insumoRepo.findOne({
+        // 1 Buscar postre
+        const postre = await manager.findOne(Postre, {
           where: {
-            id: item.insumo_id,
+            id,
+            user: { id: userId },
+            activo: true,
+          },
+          relations: {
+            receta: true,
+          },
+        });
+
+        if (!postre) {
+          throw new NotFoundException('Postre no encontrado');
+        }
+
+        // 2 Validar receta
+        if (!dto.receta || dto.receta.length === 0) {
+          throw new BadRequestException('La receta no puede estar vacía');
+        }
+
+        // 3 Extraer ids únicos
+        const insumoIds = [
+          ...new Set(dto.receta.map(r => r.insumo_id))
+        ];
+
+        // 4 Traer insumos en UNA sola query
+        const insumos = await manager.find(Insumo, {
+          where: {
+            id: In(insumoIds),
             user: { id: userId },
           },
         });
 
-        if (!insumo) {
-          throw new NotFoundException('Insumo no válido');
+        if (insumos.length !== insumoIds.length) {
+          throw new NotFoundException(
+            'Uno o más insumos no existen o no pertenecen al usuario',
+          );
         }
 
-        const detalle = new RecetaDetalle();
-        detalle.insumo = insumo;
-        detalle.cantidad = item.cantidad;
+        // 5 Crear mapa O(1)
+        const insumoMap = new Map(
+          insumos.map(insumo => [insumo.id, insumo]),
+        );
 
-        return detalle;
-      }),
-    );
+        // 6 Actualizar datos base
+        postre.nombrePostre = dto.nombrePostre;
+        postre.descripcion = dto.descripcion ?? '';
+        postre.precioVentaReferencia = dto.precioVentaReferencia;
+        postre.rendimientoBase = dto.rendimientoBase;
 
-    const postreSaved = await this.postreRepo.save(postre);
+        await manager.save(Postre, postre);
 
-    return this.mapResponse(postreSaved);
+        // 7 Eliminar receta anterior
+        if (postre.receta.length > 0) {
+          await manager.remove(RecetaDetalle, postre.receta);
+        }
+
+        // 8 Crear nueva receta
+        const nuevosDetalles: RecetaDetalle[] = [];
+
+        for (const item of dto.receta) {
+
+          const insumo = insumoMap.get(item.insumo_id);
+
+          if (!insumo) {
+            throw new NotFoundException(
+              `Insumo ${item.insumo_id} no encontrado`,
+            );
+          }
+
+          const detalle = manager.create(RecetaDetalle, {
+            postre,
+            insumo,
+            cantidad: item.cantidad,
+          });
+
+          nuevosDetalles.push(detalle);
+        }
+
+        await manager.save(RecetaDetalle, nuevosDetalles);
+
+        // 9 Traer postre completo actualizado
+        const postreActualizado = await manager.findOne(Postre, {
+          where: { id: postre.id },
+          relations: {
+            receta: {
+              insumo: true,
+            },
+          },
+        });
+
+        if (!postreActualizado) {
+          throw new NotFoundException(
+            'Postre no encontrado después de actualizar',
+          );
+        }
+
+        return this.mapResponse(postreActualizado);
+
+      });
+
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
   }
 
   // Eliminar postre (cascade borra receta)

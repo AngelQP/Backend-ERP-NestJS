@@ -16,8 +16,9 @@ class RecetaDetalleDto {
   })
   insumo_id: string;
 
-  @IsNumber()
-  @Min(0)
+  @IsPositive({
+    message: 'La cantidad debe ser un número positivo',
+  })
   cantidad: number;
 }
 

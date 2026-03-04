@@ -21,6 +21,8 @@ import { InventarioInsumoModule } from './inventario-insumo/inventario-insumo.mo
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true,
+      retryAttempts: 10,
+      retryDelay: 3000,
     }),
 
     AuthModule,

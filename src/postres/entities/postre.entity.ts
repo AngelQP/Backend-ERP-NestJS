@@ -27,7 +27,7 @@ export class Postre {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   precioVentaReferencia: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 1 })
   rendimientoBase: number; // Ej: 10 porciones
 
   @Column({
@@ -47,6 +47,7 @@ export class Postre {
     (detalle) => detalle.postre,
     {
       cascade: true,
+      orphanedRowAction: 'delete', // para eliminar hijos 
       eager: true, // trae receta automáticamente
     },
   )
