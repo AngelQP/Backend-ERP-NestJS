@@ -22,7 +22,9 @@ export class MovimientoInsumo {
     })
     tipo: TipoMovimiento
 
-    @Column('integer', {
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
         nullable: false
     })
     cantidad: number;

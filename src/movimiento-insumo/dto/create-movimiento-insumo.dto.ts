@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsUUID, Min, ValidateIf } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsUUID, Min, ValidateIf } from "class-validator";
 import { TipoMovimiento } from "src/insumos/enums/tipo-movimiento-insumo.enum";
 
 export class CreateMovimientoInsumoDto {

@@ -20,7 +20,7 @@ export class InventarioInsumoService {
     private readonly insumoRepo: Repository<Insumo>,
   ) {}
 
-  // !TODO: agregar validacion cuando no exista el inventario con mapeo inteligente
+  // listado de insumos con su stock actual y costo promedio
   async listar(userId: string): Promise<InventarioInsumoResponseDto[]> {
     const insumos = await this.insumoRepo.find({
       where: { user: { id: userId } },

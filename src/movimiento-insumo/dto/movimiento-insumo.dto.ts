@@ -1,4 +1,4 @@
-import { TipoMovimiento } from "src/insumos/enums/tipo-movimiento-insumo.enum";
+// import { TipoMovimiento } from "src/insumos/enums/tipo-movimiento-insumo.enum";
 
 export class CreateIngresoInsumoDto {
   insumo_id: string;

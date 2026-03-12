@@ -20,7 +20,11 @@ export class MovimientoInsumoService {
   ) {}
 
   // -> Registra un movimiento de insumo (ingreso, salida, merma o ajuste)
-  async registrar(dto: CreateMovimientoInsumoDto, user_id: string) {
+  async registrar(dto: CreateMovimientoInsumoDto, user_id: string, manager?: EntityManager) {
+
+    if(!manager) {
+      return this.DataSource.transaction(m => this.registrar(dto, user_id, m));
+    }
 
     // 1 Calcular impacto
     const impacto = this.calcularImpacto(dto);
@@ -173,18 +177,18 @@ export class MovimientoInsumoService {
 
     //* 2️⃣ Actualiza InventarioInsumo
     if (stockAnterior === 0) {
-      inventario.stockActual = impacto;
-      inventario.costoPromedio = dto.costoUnitario;
+      inventario.stockActual = Number(impacto);
+      inventario.costoPromedio = Number(dto.costoUnitario);
     } else {
 
       // Calculo de nuevo costo promedio ponderado
       const totalValor =
-        stockAnterior * costoAnterior +
-        impacto * dto.costoUnitario!;
+        Number(stockAnterior) * Number(costoAnterior) +
+        Number(impacto) * Number(dto.costoUnitario!);
 
-      inventario.stockActual = stockAnterior + impacto;
+      inventario.stockActual = Number(stockAnterior) + Number(impacto);
       inventario.costoPromedio =
-        totalValor / inventario.stockActual;
+        Number(totalValor) / Number(inventario.stockActual);
     }
 
     //* Guarda inventarioInsumo actualizado
@@ -198,7 +202,7 @@ export class MovimientoInsumoService {
       costoUnitario: dto.costoUnitario,
       motivo: dto.motivo,
       user: { id: user_id },
-      inventario: inventario,
+      inventario: inventario
     });
 
     //* Guarda movimientoInsumo
@@ -235,7 +239,7 @@ export class MovimientoInsumoService {
         user_id,
       );
 
-    inventario.stockActual = stockActual + impacto;
+    inventario.stockActual = Number(stockActual) + Number(impacto);
 
     if (inventario.stockActual === 0) {
       inventario.costoPromedio = 0;
@@ -250,7 +254,7 @@ export class MovimientoInsumoService {
       costoUnitario: costoUnitarioCalculado,
       motivo: dto.motivo,
       user: { id: user_id },
-      inventario: inventario,
+      inventario: inventario
     });
 
     await manager.save(movimiento);
@@ -288,10 +292,10 @@ export class MovimientoInsumoService {
       // Retorna el stick actual
       const stockActual = Number(inventario.stockActual);
       // Calcula el impacto (dto.cantidad == stock real deseado)
-      const impacto = dto.cantidad - stockActual;
+      const impacto = Number(dto.cantidad) - Number(stockActual);
 
       // costo promedio de inventario
-      let costoUnitarioMovimiento = inventario.costoPromedio;
+      let costoUnitarioMovimiento = Number(inventario.costoPromedio);
 
       // Impacto 0 -> no hace nada
       if (impacto === 0) {
@@ -311,7 +315,7 @@ export class MovimientoInsumoService {
 
         await manager.save(lote);
 
-        inventario.stockActual = dto.cantidad;
+        inventario.stockActual = Number(dto.cantidad);
 
         // costoPromedio no cambia porque entra al mismo costo promedio
 
@@ -327,7 +331,7 @@ export class MovimientoInsumoService {
           userId,
         );
 
-        inventario.stockActual = dto.cantidad;
+        inventario.stockActual = Number(dto.cantidad);
 
         // costoPromedio no cambia en salidas
       }

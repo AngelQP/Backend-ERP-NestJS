@@ -10,6 +10,7 @@ import { VentasModule } from './ventas/ventas.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { MovimientoInsumoModule } from './movimiento-insumo/movimiento-insumo.module';
 import { InventarioInsumoModule } from './inventario-insumo/inventario-insumo.module';
+import { PreparacionesModule } from './preparaciones/preparaciones.module';
 
 @Module({
   imports: [
@@ -38,6 +39,8 @@ import { InventarioInsumoModule } from './inventario-insumo/inventario-insumo.mo
     MovimientoInsumoModule,
 
     InventarioInsumoModule,
+
+    PreparacionesModule,
 
 
   ],
