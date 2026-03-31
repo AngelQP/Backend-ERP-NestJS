@@ -36,8 +36,9 @@ export class InventarioLote {
   })
   costoUnitario: number;
 
-  @Column('timestamp with time zone', {
-    default: () => 'CURRENT_TIMESTAMP',
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP'
   })
   fechaIngreso: Date;
 

@@ -8,6 +8,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { UpdatePreparacionDto } from './dto/update-preparacione.dto';
 import { FindPreparacionesDto } from './dto/include-anuladas.dto';
 import { EstadoPreparacion } from './interfaces/preparaciones.type';
+import { FindPreparacionesVentaDto } from './dto/include-ventas.dto';
 
 @Controller('preparaciones')
 export class PreparacionesController {
@@ -17,6 +18,14 @@ export class PreparacionesController {
   @Post()
   create(@Body() createPreparacioneDto: CreatePreparacionDto, @GetUser() user:User) {
     return this.preparacionesService.create(createPreparacioneDto, user.id);
+  }
+
+  @Auth(ValidRoles.admin)
+  @Get('/ventas')
+  listarPreparacionesVentas(
+    @GetUser() user: User, @Query() include: FindPreparacionesVentaDto
+  ) {
+    return this.preparacionesService.listarPreparacionesVentas(user.id, include);
   }
   
   @Auth(ValidRoles.admin)

@@ -1,34 +1,47 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
 import { VentasService } from './ventas.service';
-import { CreateVentaDto } from './dto/create-venta.dto';
+import { CreateDetalleVentaDto, CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
+import { Auth, GetUser } from 'src/auth/decorators';
+import { ValidRoles } from 'src/auth/interfaces';
+import { User } from 'src/auth/entities/user.entity';
+import { ListarVentasDto } from './dto/listar-ventas.dto';
 
 @Controller('ventas')
 export class VentasController {
   constructor(private readonly ventasService: VentasService) {}
 
+  @Auth(ValidRoles.admin)
   @Post()
-  create(@Body() createVentaDto: CreateVentaDto) {
-    return this.ventasService.create(createVentaDto);
+  create(@Body() createVentaDetalleDto: CreateDetalleVentaDto, @GetUser() user: User) {
+    return this.ventasService.crearVenta(createVentaDetalleDto, user);
   }
 
+  @Auth(ValidRoles.admin)
   @Get()
-  findAll() {
-    return this.ventasService.findAll();
+  findAll(
+    @GetUser() user: User, 
+    @Query() query: ListarVentasDto
+  ) {
+    return this.ventasService.listarVentas(user, query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ventasService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.ventasService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto) {
-    return this.ventasService.update(+id, updateVentaDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto) {
+  //   return this.ventasService.update(+id, updateVentaDto);
+  // }
 
+  @Auth(ValidRoles.admin)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ventasService.remove(+id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() user: User
+  ) {
+    return this.ventasService.anularVenta(id, user);
   }
 }

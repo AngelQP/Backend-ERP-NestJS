@@ -25,7 +25,10 @@ export class InventarioInsumo {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   costoPromedio?: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP'
+  })
   actualizadoEn: Date;
 
   @ManyToOne(() => User, { nullable: false })

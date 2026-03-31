@@ -10,6 +10,13 @@ import { EstadoPreparacion } from './interfaces/preparaciones.type';
 import { DetallePreparacion } from './entities/detallePreparacion.entity';
 import { FindPreparacionesDto } from './dto/include-anuladas.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FindPreparacionesVentaDto } from './dto/include-ventas.dto';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class PreparacionesService {
@@ -145,9 +152,9 @@ export class PreparacionesService {
       
       return {
         id: preparacionMap.id,
-        postre_id: preparacionMap.postre.id,
-        nombrePostre: preparacionMap.postre.nombrePostre,
-        precioVentaReferencia: preparacionMap.postre.precioVentaReferencia,
+        postre_id: postre.id,
+        nombrePostre: postre.nombrePostre,
+        precioVentaReferencia: postre.precioVentaReferencia,
         porcionesPlanificadas: preparacionMap.porcionesPlanificadas,
         porcionesReales: preparacionMap.porcionesReales,
         porcionesDisponibles: preparacionMap.porcionesDisponibles,
@@ -157,6 +164,68 @@ export class PreparacionesService {
       };
 
     });
+  }
+
+  async listarPreparacionesVentas(user_id: string, paginacion: FindPreparacionesVentaDto) {
+
+    const page = paginacion.page ?? 1;
+    const limit = paginacion.limit ?? 10;
+
+    const skip = (page - 1) * limit;
+
+    const qb = this.preparacionRepository
+      .createQueryBuilder('prep')
+      .leftJoin('prep.postre', 'postre')
+      .select([
+        'prep.id',
+        'prep.porcionesPlanificadas',
+        'prep.porcionesReales',
+        'prep.porcionesDisponibles',
+        'prep.estado',
+        'prep.merma',
+        'prep.fechaPreparacion',
+
+        'postre.id',
+        'postre.nombrePostre',
+        'postre.precioVentaReferencia'
+      ])
+      .where('prep.user_id = :user_id', { user_id })
+      .andWhere('prep.estado IN (:...estados)', {
+        estados: [EstadoPreparacion.ACTIVA, EstadoPreparacion.EN_VENTA],
+      });
+
+    qb.orderBy('prep.fechaPreparacion', 'DESC');
+
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    const dataTransformada = data.map((prep) => ({
+      id: prep.id,
+      nombrePostre: prep.postre.nombrePostre,
+      // porcionesPlanificadas: prep.porcionesPlanificadas,
+      porcionesReales: prep.porcionesReales,
+      porcionesDisponibles: prep.porcionesDisponibles,
+      precioVentaReferencia: prep.postre.precioVentaReferencia,
+      merma: prep.merma,
+      estado: prep.estado,
+      fechaPreparacion: dayjs(prep.fechaPreparacion).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
+    }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: dataTransformada,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+
   }
 
   async findAll(user_id: string, filtro: FindPreparacionesDto) {
@@ -179,7 +248,8 @@ export class PreparacionesService {
         'prep.fechaPreparacion',
 
         'postre.id',
-        'postre.nombrePostre'
+        'postre.nombrePostre',
+        'postre.precioVentaReferencia'
       ])
       .where('prep.user_id = :user_id', { user_id });
 
@@ -205,14 +275,15 @@ export class PreparacionesService {
 
     const dataTransformada = data.map((prep) => ({
       id: prep.id,
-      postre_id: prep.postre?.id,
-      nombrePostre: prep.postre?.nombrePostre,
+      postre_id: prep.postre.id,
+      nombrePostre: prep.postre.nombrePostre,
       porcionesPlanificadas: prep.porcionesPlanificadas,
       porcionesReales: prep.porcionesReales,
       porcionesDisponibles: prep.porcionesDisponibles,
+      precioVentaReferencia: prep.postre.precioVentaReferencia,
       merma: prep.merma,
       estado: prep.estado,
-      fechaPreparacion: prep.fechaPreparacion,
+      fechaPreparacion: dayjs(prep.fechaPreparacion).tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
     }));
 
     const totalPages = Math.ceil(total / limit);

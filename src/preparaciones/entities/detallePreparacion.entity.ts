@@ -43,7 +43,10 @@ export class DetallePreparacion {
   })
   subtotal: number;
 
-  @CreateDateColumn()
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP'
+  })
   createdAt: Date;
 
   /** RELACIONES */

@@ -36,7 +36,8 @@ export class MovimientoInsumo {
     })
     costoUnitario?: number;
 
-    @Column('timestamp with time zone', {
+    @Column({
+        type: 'timestamptz',
         default: () => 'CURRENT_TIMESTAMP'
     })
     fecha: Date;
