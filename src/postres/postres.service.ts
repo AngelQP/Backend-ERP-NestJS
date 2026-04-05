@@ -2,10 +2,11 @@ import { BadRequestException, ConflictException, HttpException, Injectable, Inte
 import { CreatePostreDto } from './dto/create-postre.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Postre } from './entities/postre.entity';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, Filter, In, Repository } from 'typeorm';
 import { Insumo } from 'src/insumos/entities/insumo.entity';
 import { RecetaDetalle } from './entities/recetaDetalle.entity';
 import { UpdatePostreDto } from './dto/update-postre.dto';
+import { FilterPostresDto } from './dto/filter-postre.dto';
 
 @Injectable()
 export class PostresService {
@@ -118,13 +119,50 @@ export class PostresService {
   }
 
   // Listar postres con su receta
-  async findAll(userId: string) {
-    const postres = await this.postreRepo.find({
-      where: { user: { id: userId }, activo: true },
-      order: { nombrePostre: 'ASC' },
-    });
+  async findAll(userId: string, filtro: FilterPostresDto) {
+    const page = filtro.page ?? 1;
+    const limit = filtro.limit ?? 10;
 
-    return postres.map(postre => this.mapResponse(postre) );
+    const skip = (page - 1) * limit;
+
+    const qb = this.postreRepo
+    .createQueryBuilder('postre')
+    .leftJoinAndSelect('postre.receta', 'receta')
+    .leftJoinAndSelect('receta.insumo', 'insumo')
+    .where('postre.user_id = :userId', { userId })
+    .andWhere('postre.activo = true');
+
+    qb.orderBy('postre.nombrePostre', 'ASC');
+
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    const dataTransformada = data.map(postre => 
+      this.mapResponse(postre)
+    );
+
+    // const postres = await this.postreRepo.find({
+    //   where: { user: { id: userId }, activo: true },
+    //   order: { nombrePostre: 'ASC' },
+    //   skip,
+    //   take: limit
+    // });
+
+    const totalPages = Math.ceil(total / limit);
+
+    // return postres.map(postre => this.mapResponse(postre) );
+    return {
+      data: dataTransformada,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   // Actualizar postre y su receta

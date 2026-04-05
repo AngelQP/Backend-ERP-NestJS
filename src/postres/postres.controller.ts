@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, ParseUUIDPipe, Query } from '@nestjs/common';
 import { PostresService } from './postres.service';
 import { CreatePostreDto } from './dto/create-postre.dto';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/interfaces';
 import { User } from 'src/auth/entities/user.entity';
 import { UpdatePostreDto } from './dto/update-postre.dto';
+import { FilterPostresDto } from './dto/filter-postre.dto';
 
 @Auth()
 @Controller('postres')
@@ -19,8 +20,8 @@ export class PostresController {
 
   @Auth(ValidRoles.admin)
   @Get()
-  findAll(@GetUser() user: User) {
-    return this.postresService.findAll(user.id);
+  findAll(@GetUser() user: User, @Query() filtro: FilterPostresDto) {
+    return this.postresService.findAll(user.id, filtro);
   }
 
   // @Get(':id')

@@ -5,6 +5,7 @@ import { InventarioInsumo } from './entities/inventario-insumo.entity';
 import { Insumo } from 'src/insumos/entities/insumo.entity';
 import { InventarioInsumoResponseDto } from './dto/inventario-insumo-response.dto';
 import { InventarioLote } from './entities/inventario-lote.entity';
+import { ListarInsumosDto } from './interface/Listar-insumo.interface';
 
 @Injectable()
 export class InventarioInsumoService {
@@ -21,14 +22,22 @@ export class InventarioInsumoService {
   ) {}
 
   // listado de insumos con su stock actual y costo promedio
-  async listar(userId: string): Promise<InventarioInsumoResponseDto[]> {
-    const insumos = await this.insumoRepo.find({
-      where: { user: { id: userId } },
+  async listar(userId: string, query: ListarInsumosDto) {
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const skip = (page - 1) * limit;
+
+    const [insumos, total] = await this.insumoRepo.findAndCount({
+      where: { user: { id: userId }, activo: true },
       relations: ['inventario'], // asegúrate que la relación exista
       order: { nombre: 'ASC' },
+      skip,
+      take: limit,
     });
 
-    return insumos.map(insumo => {
+    const dataTransformada = insumos.map(insumo => {
 
       const inventario = insumo.inventario;
 
@@ -41,6 +50,20 @@ export class InventarioInsumoService {
       };
 
     });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: dataTransformada,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      }
+    };
   }
 
   // Crea inventario inicial al registrar el primero ingreso de un insumo. Si ya existe, no hace nada.
