@@ -4,8 +4,6 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
   OneToOne,
 } from 'typeorm';
 import { DetalleVenta } from './detalleVenta.entity';
