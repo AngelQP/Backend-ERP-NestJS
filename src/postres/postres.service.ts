@@ -142,16 +142,8 @@ export class PostresService {
       this.mapResponse(postre)
     );
 
-    // const postres = await this.postreRepo.find({
-    //   where: { user: { id: userId }, activo: true },
-    //   order: { nombrePostre: 'ASC' },
-    //   skip,
-    //   take: limit
-    // });
-
     const totalPages = Math.ceil(total / limit);
 
-    // return postres.map(postre => this.mapResponse(postre) );
     return {
       data: dataTransformada,
       meta: {
