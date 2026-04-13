@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import * as nodemailer from 'nodemailer';
+// import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
@@ -193,34 +193,93 @@ export class MailService {
     </div>
   `;
 
-  private transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false, // STARTTLS
-    // family: 4, // 👈 IMPORTANTE (evita IPv6 error)
-    auth: {
-      user: process.env.BREVO_LOGIN,
-      pass: process.env.BREVO_SMTP_KEY,
-    },
-  });
+  // private transporter = nodemailer.createTransport({
+  //   host: "smtp-relay.brevo.com",
+  //   port: 587,
+  //   secure: false, // STARTTLS
+  //   // family: 4, // 👈 IMPORTANTE (evita IPv6 error)
+  //   auth: {
+  //     user: process.env.BREVO_LOGIN,
+  //     pass: process.env.BREVO_SMTP_KEY,
+  //   },
+  // });
+
+  // async sendVerificationEmail(to: string, url: string) {
+
+  //   await this.transporter.sendMail({
+  //     from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
+  //     to,
+  //     subject: 'Verifica tu cuenta',
+  //     html: this.template(url),
+  //   });
+
+  // }
 
   async sendVerificationEmail(to: string, url: string) {
+    try {
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: {
+            name: "Dulce Control ERP",
+            email: "a7c15a001@smtp-brevo.com",
+          },
+          to: [{ email: to }],
+          subject: "Verifica tu cuenta",
+          htmlContent: this.template(url),
+        }),
+      });
 
-    await this.transporter.sendMail({
-      from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
-      to,
-      subject: 'Verifica tu cuenta',
-      html: this.template(url),
-    });
-
+      const data = await response.json();
+      console.log("EMAIL SENT:", data);
+    } catch (err) {
+      console.error("EMAIL ERROR:", err);
+    }
   }
+
+  // async sendResetPasswordEmail(to: string, url: string) {
+  //   await this.transporter.sendMail({
+  //     from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
+  //     to,
+  //     subject: 'Restablecer contraseña',
+  //     html: this.templateReset(url), 
+  //   });
+  // }
 
   async sendResetPasswordEmail(to: string, url: string) {
-    await this.transporter.sendMail({
-      from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
-      to,
-      subject: 'Restablecer contraseña',
-      html: this.templateReset(url), 
-    });
+    try {
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: {
+            name: "Dulce Control ERP",
+            email: "a7c15a001@smtp-brevo.com",
+          },
+          to: [{ email: to }],
+          subject: "Restablecer contraseña",
+          htmlContent: this.templateReset(url),
+        }),
+      });
+
+      const data = await response.json();
+      console.log("RESET EMAIL SENT:", data);
+
+      if (!response.ok) {
+        throw new Error(JSON.stringify(data));
+      }
+    } catch (err) {
+      console.error("RESET EMAIL ERROR:", err);
+      throw err;
+    }
   }
+
+
 }
