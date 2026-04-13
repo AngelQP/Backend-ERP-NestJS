@@ -1,14 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
-import { METHODS } from 'http';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const allowedOrigin = process.env.FRONTEND_URL;
+
   // Habilita CORS para permitir solicitudes desde Front de prueba
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: allowedOrigin,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
   }); 
