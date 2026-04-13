@@ -82,6 +82,78 @@ export class VerificationTokenService {
 
   }
 
+  // crear token de verificación 
+  async resendVerificationToken(email: string, type: 'verify' | 'reset'): Promise<void> {
+
+    // 1. Buscar usuario (ESTO FALTABA)
+    const user = await this.userRepository.findOne({
+      where: { email }
+    });
+
+    if (!user) {
+      throw new BadRequestException('El usuario no existe');
+    }
+
+    // ANTI-SPAM 
+    const lastToken = await this.verificationTokenRepository.findOne({
+      where: { email, type },
+      order: { createdAt: "DESC" }
+    });
+
+    if (lastToken) {
+      const now = new Date();
+
+      const diffInSeconds = (now.getTime() - lastToken.createdAt.getTime()) / 1000;
+
+      const secondsLeft = Math.ceil(60 - diffInSeconds);
+
+      if (diffInSeconds < 60) {
+        throw new BadRequestException(
+          `Espera ${secondsLeft} segundos antes de solicitar otro correo`
+        );
+      }
+    }
+
+    // Invalidar tokens anteriores
+    await this.verificationTokenRepository.update(
+      { email, isUsed: false, type },
+      { isUsed: true }
+    );
+
+
+    const tokenValue = uuidv4();
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    const token = this.verificationTokenRepository.create({
+      email,
+      token: tokenValue,
+      expiresAt,
+      user,
+      isUsed: false,
+      type
+    });
+
+    await this.verificationTokenRepository.save(token);
+
+    let url = '';
+
+    // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${tokenValue}`;
+
+    if (type === 'verify') {
+      url = `${process.env.FRONTEND_URL}/verify-email/${tokenValue}`;
+      await this.mailService.sendVerificationEmail(email, url);
+    }
+
+    if (type === 'reset') {
+      url = `${process.env.FRONTEND_URL}/reset-password/${tokenValue}`;
+
+      await this.mailService.sendResetPasswordEmail(email, url);
+    }
+
+  }
+
   // validar token
   async validateToken(tokenValue: string): Promise<VerificationToken> {
 
