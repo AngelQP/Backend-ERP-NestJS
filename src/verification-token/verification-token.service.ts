@@ -20,19 +20,11 @@ export class VerificationTokenService {
   ) {}
 
   // crear token de verificación 
-  async createVerificationToken(email: string, type: 'verify' | 'reset'): Promise<void> {
-
-   const user = await this.userRepository.findOne({
-      where: { email }
-    });
-
-    if (!user) {
-      throw new BadRequestException("Usuario no encontrado");
-    }
+  async createVerificationToken(user: User, type: 'verify' | 'reset'): Promise<void> {
 
     // ANTI-SPAM 
     const lastToken = await this.verificationTokenRepository.findOne({
-      where: { email, type },
+      where: { user: { email: user.email }, type },
       order: { createdAt: "DESC" }
     });
 
@@ -52,7 +44,7 @@ export class VerificationTokenService {
 
     // Invalidar tokens anteriores
     await this.verificationTokenRepository.update(
-      { email, isUsed: false, type },
+      { email: user.email, isUsed: false, type },
       { isUsed: true }
     );
 
@@ -63,7 +55,7 @@ export class VerificationTokenService {
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
     const token = this.verificationTokenRepository.create({
-      email,
+      email: user.email,
       token: tokenValue,
       expiresAt,
       user,
@@ -78,14 +70,14 @@ export class VerificationTokenService {
     // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${tokenValue}`;
 
     if (type === 'verify') {
-      url = `${process.env.FRONTEND_URL}/verify-email?token=${tokenValue}`;
-      await this.mailService.sendVerificationEmail(email, url);
+      url = `${process.env.FRONTEND_URL}/verify-email/${tokenValue}`;
+      await this.mailService.sendVerificationEmail(user.email, url);
     }
 
     if (type === 'reset') {
-      url = `${process.env.FRONTEND_URL}/reset-password?token=${tokenValue}`;
+      url = `${process.env.FRONTEND_URL}/reset-password/${tokenValue}`;
 
-      await this.mailService.sendResetPasswordEmail(email, url);
+      await this.mailService.sendResetPasswordEmail(user.email, url);
     }
 
   }
@@ -106,7 +98,10 @@ export class VerificationTokenService {
     }
 
     if (token.expiresAt < new Date()) {
-      throw new BadRequestException("Código expirado");
+      throw new BadRequestException({
+        title: "TOKEN_EXPIRED",
+        message: "El enlace ha expirado"
+      });
     }
 
     return token;

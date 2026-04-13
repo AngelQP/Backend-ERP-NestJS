@@ -26,12 +26,12 @@ export class VerificationTokenController {
     return await this.verificationTokenService.verifyEmail(token);
   }
 
-  @Post('resend-verification')
-  async resend(@Body('email') email: string) {
-    await this.verificationTokenService.createVerificationToken(email, 'verify');
-    return {
-      message: "Correo reenviado"
-    };
-  }
+  // @Post('resend-verification')
+  // async resend(@Body('email') email: string) {
+  //   await this.verificationTokenService.createVerificationToken(email, 'verify');
+  //   return {
+  //     message: "Correo reenviado"
+  //   };
+  // }
 
 }

@@ -40,10 +40,17 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-      // Generar token
-      await this.verificationTokenService.createVerificationToken(user.email, 'verify');
 
-      // retorno mediante DTO
+      // Generar token
+      
+        setImmediate(async() => {
+          try {
+            await this.verificationTokenService.createVerificationToken(user, 'verify');
+          } catch (error: any) {
+            console.log('Error enviando verificación:', error.message);
+          }
+        });
+
       return {
         message: 'Usuario creado. Revisa tu correo para verificar tu cuenta'
       };
@@ -54,6 +61,8 @@ export class AuthService {
   }
 
   async resetPassword(tokenValue: string, newPassword: string) {
+
+    console.log(tokenValue, newPassword);
 
     const token = await this.verificationTokenService.validateToken(tokenValue);
 
@@ -163,13 +172,19 @@ export class AuthService {
     });
 
     if (!user) {
-      // ⚠️ no revelar si existe o no
+      // no revelar si existe o no
       return {
         message: 'Si el correo existe, se enviará un enlace'
       };
     }
 
-    await this.verificationTokenService.createVerificationToken(email, 'reset');
+    setImmediate(async () => {
+      try {
+        await this.verificationTokenService.createVerificationToken(user, 'reset');
+      } catch (error) {
+        console.log('Error enviando reset email:', error);
+      }
+    });
 
     return {
       message: 'Si el correo existe, se enviará un enlace'

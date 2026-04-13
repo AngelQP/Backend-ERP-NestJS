@@ -4,6 +4,7 @@ import { CreateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
 import { ValidRoles } from './interfaces';
 import { Auth, GetUser } from './decorators';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -40,11 +41,8 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  resetPassword(
-    @Body('token') token: string,
-    @Body('password') password: string
-  ) {
-    return this.authService.resetPassword(token, password);
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 
   
