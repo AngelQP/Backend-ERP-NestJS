@@ -204,10 +204,10 @@ export class MailService {
     },
   });
 
-   async sendVerificationEmail(to: string, url: string) {
+  async sendVerificationEmail(to: string, url: string) {
 
     await this.transporter.sendMail({
-      from: `"Dulce Control ERP" <${process.env.GMAIL_USER}>`,
+      from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
       to,
       subject: 'Verifica tu cuenta',
       html: this.template(url),
@@ -217,7 +217,7 @@ export class MailService {
 
   async sendResetPasswordEmail(to: string, url: string) {
     await this.transporter.sendMail({
-      from: `"Dulce Control ERP" <${process.env.GMAIL_USER}>`,
+      from: `"Dulce Control ERP" <${process.env.BREVO_LOGIN}>`,
       to,
       subject: 'Restablecer contraseña',
       html: this.templateReset(url), 
