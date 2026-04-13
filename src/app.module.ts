@@ -11,10 +11,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { MovimientoInsumoModule } from './movimiento-insumo/movimiento-insumo.module';
 import { InventarioInsumoModule } from './inventario-insumo/inventario-insumo.module';
 import { PreparacionesModule } from './preparaciones/preparaciones.module';
+import { VerificationTokenModule } from './verification-token/verification-token.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
 
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -41,6 +45,10 @@ import { PreparacionesModule } from './preparaciones/preparaciones.module';
     InventarioInsumoModule,
 
     PreparacionesModule,
+
+    VerificationTokenModule,
+
+    MailModule,
 
 
   ],

@@ -10,6 +10,7 @@ import { User } from './entities/user.entity';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from './dto/user-response.dto';
+import { VerificationTokenService } from 'src/verification-token/verification-token.service';
 
 @Injectable()
 export class AuthService {
@@ -18,12 +19,14 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+
+    private readonly verificationTokenService: VerificationTokenService 
 
   ){}
 
   // Creacion de un usuario 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async create(createUserDto: CreateUserDto) {
 
     try {
 
@@ -31,17 +34,47 @@ export class AuthService {
 
       const user = this.userRepository.create( { 
         ...userData,
-        password: bcryptAdapter.hash(password)
+        password: bcryptAdapter.hash(password),
+        isEmailVerified: false
       } );
 
       await this.userRepository.save(user);
 
+      // Generar token
+      await this.verificationTokenService.createVerificationToken(user.email, 'verify');
+
       // retorno mediante DTO
-      return this.buildAuthResponse(user);
+      return {
+        message: 'Usuario creado. Revisa tu correo para verificar tu cuenta'
+      };
 
     } catch (error) {
         this.handleDBErrors(error);
     }
+  }
+
+  async resetPassword(tokenValue: string, newPassword: string) {
+
+    const token = await this.verificationTokenService.validateToken(tokenValue);
+
+    if (token.type !== 'reset') {
+      throw new BadRequestException('Token inválido');
+    }
+
+    const user = token.user;
+
+    user.password = bcryptAdapter.hash(newPassword);
+
+    await this.userRepository.save(user);
+
+    // invalidar los tokens anteriores del usuario (ejemplo: al cambiar contraseña)
+    await this.verificationTokenService.invalidateAllUserTokens(user.id);
+
+    await this.verificationTokenService.markAsUsed(token);
+
+    return {
+      message: 'Contraseña actualizada correctamente'
+    };
   }
 
   // Logeo de un usuario
@@ -52,7 +85,7 @@ export class AuthService {
     // en la consulta solo retorna email y password
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true, name: true, lastName: true}
+      select: { email: true, password: true, id: true, name: true, lastName: true, isEmailVerified: true}
     });
 
     if ( !user ) 
@@ -62,18 +95,23 @@ export class AuthService {
     if( !bcryptAdapter.compare(password, user.password) )
       throw new UnauthorizedException('Credenciales no válidas');
 
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('Debes verificar tu correo antes de iniciar sesión');
+    }
+
     // Eliminacion de password
     const { password: passwordUser, ...userWithoutPassword} = user;
     
     // retorno mediante DTO
-    return this.buildAuthResponse(user);
+    return this.buildAuthResponse(userWithoutPassword as User);
 
   }
 
-
   private getJwtToken( payload: JwtPayload ) {
 
-    const token = this.jwtService.sign( payload );
+    const token = this.jwtService.sign( payload, {
+      expiresIn: '1d'
+    } );
     return token;
 
   }
@@ -116,6 +154,26 @@ export class AuthService {
         // Incluye en el resultado FINAL solo las propiedades que estén explícitamente marcadas con @Expose() en el DTO
         {excludeExtraneousValues: true}
       );
+  }
+
+  async requestPasswordReset(email: string) {
+
+    const user = await this.userRepository.findOne({
+      where: { email }
+    });
+
+    if (!user) {
+      // ⚠️ no revelar si existe o no
+      return {
+        message: 'Si el correo existe, se enviará un enlace'
+      };
+    }
+
+    await this.verificationTokenService.createVerificationToken(email, 'reset');
+
+    return {
+      message: 'Si el correo existe, se enviará un enlace'
+    };
   }
 
   

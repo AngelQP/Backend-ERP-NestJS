@@ -8,6 +8,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from './entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { VerificationToken } from 'src/verification-token/entities/verification-token.entity';
+import { VerificationTokenModule } from 'src/verification-token/verification-token.module';
 
 @Module({
   controllers: [AuthController],
@@ -16,6 +18,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   imports: [
 
     ConfigModule,
+
+    VerificationTokenModule,
 
     TypeOrmModule.forFeature([User]),
 

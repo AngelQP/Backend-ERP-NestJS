@@ -7,8 +7,10 @@ import {
     PrimaryGeneratedColumn,
     BeforeInsert,
     BeforeUpdate,
+    OneToMany,
 } from "typeorm";
 import { ValidRoles } from "../interfaces";
+import { VerificationToken } from "src/verification-token/entities/verification-token.entity";
 
 @Entity('users')
 export class User {
@@ -69,6 +71,15 @@ export class User {
         select: false
     })
     deletedAt: Date;
+
+    @Column({ default: false })
+    isEmailVerified: boolean;
+
+    @OneToMany(
+    () => VerificationToken,
+    (verificationToken) => verificationToken.user
+    )
+    verificationTokens: VerificationToken[];
 
     @BeforeInsert()
     checkFieldsBeforeInsert() {
