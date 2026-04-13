@@ -194,7 +194,10 @@ export class MailService {
   `;
 
   private transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // STARTTLS
+    family: 4, // 👈 IMPORTANTE (evita IPv6 error)
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_PASS,
