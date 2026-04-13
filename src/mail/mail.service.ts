@@ -226,7 +226,7 @@ export class MailService {
         body: JSON.stringify({
           sender: {
             name: "Dulce Control ERP",
-            email: "a7c15a001@smtp-brevo.com",
+            email: process.env.BREVO_CORREO!,
           },
           to: [{ email: to }],
           subject: "Verifica tu cuenta",
@@ -261,7 +261,7 @@ export class MailService {
         body: JSON.stringify({
           sender: {
             name: "Dulce Control ERP",
-            email: "a7c15a001@smtp-brevo.com",
+            email: process.env.BREVO_CORREO!,
           },
           to: [{ email: to }],
           subject: "Restablecer contraseña",
