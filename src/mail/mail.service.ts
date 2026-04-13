@@ -194,13 +194,13 @@ export class MailService {
   `;
 
   private transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: "smtp-relay.brevo.com",
     port: 587,
     secure: false, // STARTTLS
-    family: 4, // 👈 IMPORTANTE (evita IPv6 error)
+    // family: 4, // 👈 IMPORTANTE (evita IPv6 error)
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS,
+      user: process.env.BREVO_LOGIN,
+      pass: process.env.BREVO_SMTP_KEY,
     },
   });
 
