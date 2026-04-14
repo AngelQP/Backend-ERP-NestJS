@@ -195,7 +195,7 @@ export class MailService {
 
   private transporter = nodemailer.createTransport({
     host: "smtp-relay.brevo.com",
-    port: 465,
+    port: 587,
     secure: false, // STARTTLS
     // family: 4, // 👈 IMPORTANTE (evita IPv6 error)
     auth: {
