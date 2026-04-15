@@ -16,7 +16,7 @@ export class VerificationTokenService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
 
-     private mailService: MailService,
+    //  private mailService: MailService,
   ) {}
 
   // crear token de verificación 

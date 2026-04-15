@@ -48,7 +48,7 @@ import { MailModule } from './mail/mail.module';
 
     VerificationTokenModule,
 
-    MailModule,
+    // MailModule,
 
 
   ],

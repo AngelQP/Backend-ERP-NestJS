@@ -4,13 +4,13 @@ import { VerificationTokenController } from './verification-token.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VerificationToken } from './entities/verification-token.entity';
 import { User } from 'src/auth/entities/user.entity';
-import { MailModule } from 'src/mail/mail.module';
+// import { MailModule } from 'src/mail/mail.module';
 
 @Module({
 
   imports: [
     TypeOrmModule.forFeature([VerificationToken, User]),
-    MailModule, // importamos el módulo de mail para enviar correos
+    // MailModule, // importamos el módulo de mail para enviar correos
   ], 
   controllers: [VerificationTokenController],
   providers: [VerificationTokenService],

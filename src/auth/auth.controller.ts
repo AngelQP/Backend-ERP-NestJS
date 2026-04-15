@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
-import { User } from './entities/user.entity';
-import { ValidRoles } from './interfaces';
-import { Auth, GetUser } from './decorators';
+// import { User } from './entities/user.entity';
+// import { ValidRoles } from './interfaces';
+// import { Auth, GetUser } from './decorators';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
