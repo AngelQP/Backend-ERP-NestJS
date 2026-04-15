@@ -20,7 +20,10 @@ export class VerificationTokenService {
   ) {}
 
   // crear token de verificación 
-  async createVerificationToken(user: User, type: 'verify' | 'reset'): Promise<void> {
+  async createVerificationToken(user: User, type: 'verify' | 'reset'): Promise<{ verificationUrl: string; expirationTime: number }> {
+
+    // expiracion de tiempo del token en minutos
+    const expirationTime = 10;
 
     // ANTI-SPAM 
     const lastToken = await this.verificationTokenRepository.findOne({
@@ -52,7 +55,7 @@ export class VerificationTokenService {
     const tokenValue = uuidv4();
 
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+    expiresAt.setMinutes(expiresAt.getMinutes() + expirationTime);
 
     const token = this.verificationTokenRepository.create({
       email: user.email,
@@ -65,27 +68,28 @@ export class VerificationTokenService {
 
     await this.verificationTokenRepository.save(token);
 
-    let url = '';
+    let verificationUrl = `${process.env.FRONTEND_URL}`;
 
-    // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${tokenValue}`;
 
     if (type === 'verify') {
-      url = `${process.env.FRONTEND_URL}/verify-email/${tokenValue}`;
-      await this.mailService.sendVerificationEmail(user.email, url);
+      verificationUrl += `/verify-email/${tokenValue}`;
     }
 
     if (type === 'reset') {
-      url = `${process.env.FRONTEND_URL}/reset-password/${tokenValue}`;
+      verificationUrl += `/reset-password/${tokenValue}`;
+    }
 
-      await this.mailService.sendResetPasswordEmail(user.email, url);
+    return {
+      verificationUrl,
+      expirationTime
     }
 
   }
 
   // crear token de verificación 
-  async resendVerificationToken(email: string, type: 'verify' | 'reset'): Promise<void> {
+  async resendVerificationToken(email: string, type: 'verify' | 'reset'): Promise<{ verificationUrl: string; expirationTime: number }> {
 
-    // 1. Buscar usuario (ESTO FALTABA)
+    // Buscar usuario
     const user = await this.userRepository.findOne({
       where: { email }
     });
@@ -93,6 +97,8 @@ export class VerificationTokenService {
     if (!user) {
       throw new BadRequestException('El usuario no existe');
     }
+
+    const expirationTime = 10;
 
     // ANTI-SPAM 
     const lastToken = await this.verificationTokenRepository.findOne({
@@ -124,7 +130,7 @@ export class VerificationTokenService {
     const tokenValue = uuidv4();
 
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+    expiresAt.setMinutes(expiresAt.getMinutes() + expirationTime);
 
     const token = this.verificationTokenRepository.create({
       email,
@@ -137,19 +143,19 @@ export class VerificationTokenService {
 
     await this.verificationTokenRepository.save(token);
 
-    let url = '';
-
-    // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${tokenValue}`;
+    let url = `${process.env.FRONTEND_URL}`;
 
     if (type === 'verify') {
-      url = `${process.env.FRONTEND_URL}/verify-email/${tokenValue}`;
-      await this.mailService.sendVerificationEmail(email, url);
+      url += `/verify-email/${tokenValue}`;
     }
 
     if (type === 'reset') {
-      url = `${process.env.FRONTEND_URL}/reset-password/${tokenValue}`;
-
-      await this.mailService.sendResetPasswordEmail(email, url);
+      url += `/reset-password/${tokenValue}`;
+    }
+    
+    return {
+      verificationUrl: url,
+      expirationTime
     }
 
   }

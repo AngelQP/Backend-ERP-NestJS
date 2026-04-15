@@ -24,16 +24,16 @@ export class AuthController {
   }
 
   // Queda con un solo decorador que es Auth
-  @Get('private3')
-  @Auth(ValidRoles.admin)
-  testgPrivateRoute3( 
-    @GetUser() user: User,
-  ) {
-     return {
-       ok: true,
-       user,
-     }
-  }
+  // @Get('private3')
+  // @Auth(ValidRoles.admin)
+  // testgPrivateRoute3( 
+  //   @GetUser() user: User,
+  // ) {
+  //    return {
+  //      ok: true,
+  //      user,
+  //    }
+  // }
 
   @Post('request-password-reset')
   requestReset(@Body('email') email: string) {
