@@ -41,8 +41,7 @@ export class AuthService {
       await this.userRepository.save(user);
 
 
-      // Generar token
-      
+      // Generar token      
       
       const { verificationUrl, expirationTime } = await this.verificationTokenService.createVerificationToken(user, 'verify');
         

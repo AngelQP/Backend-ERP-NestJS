@@ -29,7 +29,7 @@ export class VerificationTokenService {
     const lastToken = await this.verificationTokenRepository.findOne({
       where: { user: { email: user.email }, type },
       order: { createdAt: "DESC" }
-    });
+    }); 
 
     if (lastToken) {
       const now = new Date();
