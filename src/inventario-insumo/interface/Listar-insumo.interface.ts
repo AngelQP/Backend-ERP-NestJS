@@ -13,4 +13,7 @@ export class ListarInsumosDto {
   @IsNumber()
   limit?: number = 10;
 
+  @IsOptional()
+  search?: string;
+
 }

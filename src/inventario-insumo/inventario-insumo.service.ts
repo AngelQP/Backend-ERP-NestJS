@@ -3,9 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, MoreThan, Repository } from 'typeorm';
 import { InventarioInsumo } from './entities/inventario-insumo.entity';
 import { Insumo } from 'src/insumos/entities/insumo.entity';
-import { InventarioInsumoResponseDto } from './dto/inventario-insumo-response.dto';
+// import { InventarioInsumoResponseDto } from './dto/inventario-insumo-response.dto';
 import { InventarioLote } from './entities/inventario-lote.entity';
 import { ListarInsumosDto } from './interface/Listar-insumo.interface';
+
+import { ILike } from 'typeorm';
 
 @Injectable()
 export class InventarioInsumoService {
@@ -26,11 +28,22 @@ export class InventarioInsumoService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
+    const search = query.search?.trim(); 
 
     const skip = (page - 1) * limit;
 
+    const where: any = {
+      user: { id: userId },
+      activo: true,
+    }
+
+    if (search) {
+      where.nombre = ILike(`%${search}%`);
+    }
+
     const [insumos, total] = await this.insumoRepo.findAndCount({
-      where: { user: { id: userId }, activo: true },
+      where,
+      // where: { user: { id: userId }, activo: true },
       relations: ['inventario'], // asegúrate que la relación exista
       order: { nombre: 'ASC' },
       skip,
